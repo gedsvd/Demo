@@ -119,11 +119,6 @@ elif choice1 == "Login":
                     # Result
                     st.success(f"Prediction: {classes[prd]}")
 
-                else:
-                    st.error("Invalid image file")
-
-        else:
-            st.error("Invalid Email or Password")
 
 # ----------------------
 # Signup Section
