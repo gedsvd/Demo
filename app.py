@@ -125,10 +125,10 @@ if uploaded_file is not None:
         )[0]
 
         # Class names
-        classes = ["real", "fake"]
+    classes = ["real", "fake"]
 
-        # Show result
-        st.success(classes[prd])
-        
-     else:
-        st.error("Invalid credentials.")
+    # Show result
+    st.success(classes[prd])
+
+else:
+    st.error("Invalid credentials.")
