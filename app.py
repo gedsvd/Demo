@@ -42,68 +42,88 @@ if choice1 == "Home":
 
 # ----------------------
 # ----------------------
+# ----------------------
 # Login Section
 # ----------------------
 elif choice1 == "Login":
     st.subheader("Login Section")
 
-    email = st.sidebar.text_input("Email")
-    password = st.sidebar.text_input("Password", type="password")
-    b1 = st.sidebar.checkbox("Login")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
 
-    # Download model if not exists
-    if not os.path.exists("Deep_model.keras"):
-        import gdown
+    # Login button
+    if st.button("Login"):
 
-        gdown.download(
-            id="1MvQFRlMsv6BJh94y_7vpNMnJ_YJqI_PK",
-            output="Deep_model.keras",
-            quiet=False
-        )
+        # Simple login validation
+        if email == "admin@gmail.com" and password == "1234":
+            st.success("Login Successful")
 
-    # Load model
-    model = keras.models.load_model("Deep_model.keras")
+            # ----------------------
+            # Detection Page
+            # ----------------------
+            st.markdown("---")
+            st.header("DeepFake Image Detection")
+            st.write("Upload an image to predict whether it is Real or Fake.")
 
-    st.title("DeepFake Image Detection")
-    st.write("Upload an image to predict whether it is Real or Fake.")
+            # Download model if not exists
+            if not os.path.exists("Deep_model.keras"):
+                import gdown
 
-    # Upload image
-    uploaded_file = st.file_uploader(
-        "Choose an image",
-        type=["jpg", "jpeg", "png"]
-    )
+                gdown.download(
+                    id="1MvQFRlMsv6BJh94y_7vpNMnJ_YJqI_PK",
+                    output="Deep_model.keras",
+                    quiet=False
+                )
 
-    if uploaded_file is not None:
-        # Open image with PIL
-        image = Image.open(uploaded_file).convert("RGB")
+            # Load model
+            model = keras.models.load_model("Deep_model.keras")
 
-        # Display image
-        st.image(image, caption="Uploaded Image", use_container_width=True)
+            # Upload image
+            uploaded_file = st.file_uploader(
+                "Choose an image",
+                type=["jpg", "jpeg", "png"]
+            )
 
-        # Convert image for OpenCV
-        file_bytes = np.frombuffer(uploaded_file.getvalue(), dtype=np.uint8)
-        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            if uploaded_file is not None:
+                # Open image
+                image = Image.open(uploaded_file).convert("RGB")
 
-        # Check if image is loaded correctly
-        if img is not None:
-            # Resize and normalize
-            img = cv2.resize(img, (64, 64))
-            img = img.astype("float32") / 255.0
+                # Show image
+                st.image(
+                    image,
+                    caption="Uploaded Image",
+                    use_container_width=True
+                )
 
-            # Prediction
-            prd = np.argmax(
-                model.predict(img.reshape(1, 64, 64, 3)),
-                axis=1
-            )[0]
+                # Convert for OpenCV
+                file_bytes = np.frombuffer(
+                    uploaded_file.getvalue(),
+                    dtype=np.uint8
+                )
 
-            # Class labels
-            classes = ["real", "fake"]
+                img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-            # Show result
-            st.success(f"Prediction: {classes[prd]}")
+                if img is not None:
+                    # Resize and normalize
+                    img = cv2.resize(img, (64, 64))
+                    img = img.astype("float32") / 255.0
+
+                    # Predict
+                    prd = np.argmax(
+                        model.predict(img.reshape(1, 64, 64, 3)),
+                        axis=1
+                    )[0]
+
+                    classes = ["Real", "Fake"]
+
+                    # Result
+                    st.success(f"Prediction: {classes[prd]}")
+
+                else:
+                    st.error("Invalid image file")
 
         else:
-            st.error("Invalid image file.")
+            st.error("Invalid Email or Password")
 
 # ----------------------
 # Signup Section
