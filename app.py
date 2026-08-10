@@ -130,5 +130,5 @@ if uploaded_file is not None:
         # Show result
         st.success(classes[prd])
         
-            else:
-                st.error("Invalid credentials.")
+     else:
+        st.error("Invalid credentials.")
