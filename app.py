@@ -21,9 +21,172 @@ ADMIN_PASS = 'admin123'
 menu = st.sidebar.selectbox("Navigate", ["Home", "Register", "Login"])
 
 # Home page
-if menu == "Home":
-    st.title("DeepFake Face Classification")
-    st.image("image2.jpg")
+# ---------------- CUSTOM CSS ----------------
+
+st.markdown(
+    '''
+    <style>
+
+    /* Main Background and Text */
+    .stApp {
+        background-color: #0b0e14;
+        color: #e1e2e4;
+    }
+
+    /* Typography */
+    h1, h2, h3 {
+        color: #ffffff;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        background-color: #00d2ff;
+        color: #0b0e14;
+        font-weight: bold;
+        border-radius: 4px;
+        border: none;
+    }
+
+    .stButton > button:hover {
+        background-color: #00a8cc;
+    }
+
+    /* Feature Cards */
+    .feature-card {
+        background-color: #191c22;
+        padding: 24px;
+        border-radius: 8px;
+        border: 1px solid rgba(133, 142, 161, 0.2);
+        text-align: center;
+    }
+
+    .feature-icon {
+        font-size: 2rem;
+        color: #00d2ff;
+        margin-bottom: 12px;
+    }
+
+    /* Status Bar */
+    .status-bar {
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        color: #858ea1;
+        padding-top: 20px;
+        margin-top: 40px;
+    }
+
+    </style>
+    ''',
+    unsafe_allow_html=True
+)
+
+# ---------------- LOGIN AUTHENTICATION ----------------
+
+if menu == 'Login' and not st.session_state.get('logged_in'):
+
+    st.subheader('Authentication')
+
+    login_email = st.text_input('Email Address')
+    login_password = st.text_input('Access Key', type='password')
+
+    if st.button('Authorize Access'):
+
+        if login_email == ADMIN_EMAIL and login_password == ADMIN_PASS:
+
+            st.session_state['logged_in'] = True
+            st.session_state['user_role'] = 'admin'
+
+            st.success('Admin Login Successful')
+
+        else:
+
+            c.execute(
+                'SELECT * FROM users WHERE email=? AND password=?',
+                (login_email, login_password)
+            )
+
+            user = c.fetchone()
+
+            if user:
+
+                st.session_state['logged_in'] = True
+                st.session_state['user_role'] = 'user'
+                st.session_state['user_name'] = user[1]
+
+                st.success('User Login Successful')
+
+            else:
+
+                st.error('Access Denied: Invalid Credentials')
+
+# ---------------- HOME PAGE ----------------
+
+if menu == 'Home':
+
+    st.title('DeepFake Face Classification')
+
+    st.markdown(
+        'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
+    )
+
+    st.image(
+        'screen.png',
+        caption='VERTEX_SCANNING: NEURAL ARCHITECTURE VISUALIZATION',
+        width=900      # safer for older Streamlit versions
+    )
+
+    st.markdown('<br>', unsafe_allow_html=True)
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.markdown(
+            '''
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h4>Deep Learning</h4>
+                <p><small>Built with CNNs for accurate DeepFake detection</small></p>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        st.markdown(
+            '''
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h4>Image Analysis</h4>
+                <p><small>Advanced preprocessing and feature extraction</small></p>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
+
+    with col3:
+        st.markdown(
+            '''
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h4>High Accuracy</h4>
+                <p><small>Trained on diverse datasets for reliable classification</small></p>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
+
+    with col4:
+        st.markdown(
+            '''
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h4>Real-time Prediction</h4>
+                <p><small>Optimized pipeline for instant results</small></p>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
 
 # Register page
 elif menu == "Register":
