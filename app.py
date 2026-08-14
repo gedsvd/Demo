@@ -21,18 +21,20 @@ ADMIN_PASS = 'admin123'
 # Sidebar menu
 menu = st.sidebar.selectbox("Navigate", ["Home", "Register", "Login"])
 
-def get_base64(image2.jpg):
+def get_base64(path):
+    if not os.path.exists(path):
+        st.error(f"Image not found at: {path}")
+        return None
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-img_b64 = get_base64("images/images2.jpg")
+img_b64 = get_base64("image2.jpg")
 
-# Fixed corner floating image (stays on screen while scrolling)
-st.markdown(
-    f'<img src="data:image/jpg;base64,{img_b64}" class="floating-img">',
-    unsafe_allow_html=True
-)
-
+if img_b64:
+    st.markdown(
+        f'<img src="data:image/png;base64,{img_b64}" class="floating-img">',
+        unsafe_allow_html=True
+    )
 # OR — inline bobbing image (appears in normal page flow, just animates)
 st.markdown(
     f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
