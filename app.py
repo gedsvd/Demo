@@ -166,7 +166,7 @@ if menu == 'Home':
         'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
     )
 
-    def get_base64(path):
+def get_base64(path):
     if not os.path.exists(path):
         st.error(f"Image not found at: {path}")
         return None
