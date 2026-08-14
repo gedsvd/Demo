@@ -166,11 +166,25 @@ if menu == 'Home':
         'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
     )
 
-    st.image(
-        'image2.jpg',
-        caption='VERTEX_SCANNING: NEURAL ARCHITECTURE VISUALIZATION',
-         use_container_width=True      # safer for older Streamlit versions
+    def get_base64(path):
+    if not os.path.exists(path):
+        st.error(f"Image not found at: {path}")
+        return None
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+img_b64 = get_base64("image2.jpg")
+
+if img_b64:
+    st.markdown(
+        f'<img src="data:image/png;base64,{img_b64}" class="floating-img">',
+        unsafe_allow_html=True
     )
+# OR — inline bobbing image (appears in normal page flow, just animates)
+st.markdown(
+    f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
+    unsafe_allow_html=True
+)
 
     st.markdown('<br>', unsafe_allow_html=True)
 
