@@ -159,7 +159,7 @@ img_b64 = get_base64("image2.jpg")
 if img_b64:
     # Fixed corner floating image
     st.markdown(
-        f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
+        f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="450">',
         unsafe_allow_html=True
     )
     col1, col2, col3, col4 = st.columns(4)
