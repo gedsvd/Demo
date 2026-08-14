@@ -166,11 +166,9 @@ if img_b64:
     # OR — inline bobbing image (comment one out, don't use both at once
     # unless you actually want two copies of the image on screen)
     st.markdown(
-        f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
+        f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="300">',
         unsafe_allow_html=True
     )
-    st.markdown('<br>', unsafe_allow_html=True)
-
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
