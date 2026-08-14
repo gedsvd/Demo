@@ -131,7 +131,7 @@ if menu == 'Home':
     )
 
     st.image(
-        'screen.png',
+        'image2.jpg',
         caption='VERTEX_SCANNING: NEURAL ARCHITECTURE VISUALIZATION',
         width=900      # safer for older Streamlit versions
     )
