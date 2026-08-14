@@ -133,7 +133,7 @@ if menu == 'Home':
     st.image(
         'image2.jpg',
         caption='VERTEX_SCANNING: NEURAL ARCHITECTURE VISUALIZATION',
-        width=450      # safer for older Streamlit versions
+         use_container_width=True      # safer for older Streamlit versions
     )
 
     st.markdown('<br>', unsafe_allow_html=True)
