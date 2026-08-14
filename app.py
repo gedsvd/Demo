@@ -5,6 +5,7 @@ import numpy as np
 from tensorflow import keras
 from PIL import Image
 import os
+import base64
 
 # Initialize database
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -20,25 +21,39 @@ ADMIN_PASS = 'admin123'
 # Sidebar menu
 menu = st.sidebar.selectbox("Navigate", ["Home", "Register", "Login"])
 
+def get_base64(image2.jpg):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+img_b64 = get_base64("images/images2.jpg")
+
+# Fixed corner floating image (stays on screen while scrolling)
+st.markdown(
+    f'<img src="data:image/jpg;base64,{img_b64}" class="floating-img">',
+    unsafe_allow_html=True
+)
+
+# OR — inline bobbing image (appears in normal page flow, just animates)
+st.markdown(
+    f'<img src="data:image/png;base64,{img_b64}" class="floating-inline" width="200">',
+    unsafe_allow_html=True
+)
 # Home page
 # ---------------- CUSTOM CSS ----------------
 
 st.markdown(
     '''
     <style>
-
     /* Main Background and Text */
     .stApp {
         background-color: #0b0e14;
         color: #e1e2e4;
     }
-
     /* Typography */
     h1, h2, h3 {
         color: #ffffff;
         font-family: 'Inter', sans-serif;
     }
-
     /* Buttons */
     .stButton > button {
         background-color: #00d2ff;
@@ -47,11 +62,9 @@ st.markdown(
         border-radius: 4px;
         border: none;
     }
-
     .stButton > button:hover {
         background-color: #00a8cc;
     }
-
     /* Feature Cards */
     .feature-card {
         background-color: #191c22;
@@ -60,13 +73,11 @@ st.markdown(
         border: 1px solid rgba(133, 142, 161, 0.2);
         text-align: center;
     }
-
     .feature-icon {
         font-size: 2rem;
         color: #00d2ff;
         margin-bottom: 12px;
     }
-
     /* Status Bar */
     .status-bar {
         font-family: 'Courier New', monospace;
@@ -76,6 +87,29 @@ st.markdown(
         margin-top: 40px;
     }
 
+    /* Floating Image - Fixed Corner Overlay */
+    .floating-img {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 120px;
+        z-index: 9999;
+        animation: floatY 3s ease-in-out infinite;
+        filter: drop-shadow(0 0 12px rgba(0, 210, 255, 0.4));
+    }
+
+    /* Floating Image - Inline Bobbing Effect */
+    .floating-inline {
+        animation: floatY 3s ease-in-out infinite;
+        border-radius: 8px;
+    }
+
+    /* Shared bobbing keyframes */
+    @keyframes floatY {
+        0%   { transform: translatey(0px); }
+        50%  { transform: translatey(-15px); }
+        100% { transform: translatey(0px); }
+    }
     </style>
     ''',
     unsafe_allow_html=True
