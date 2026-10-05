@@ -411,18 +411,22 @@ elif menu == "Register":
             elif password != confirm_password:
                 st.error("Passwords do not match.")
             else:
-                try:
-                    with st.spinner('Creating your account...'):
-                        time.sleep(0.4)
-                        c.execute(
-                            "INSERT INTO users (name, city, email, mobile, password) VALUES (?, ?, ?, ?, ?)",
-                            (name, city, email, mobile, password)
-                        )
-                        conn.commit()
-                    st.success("Registered successfully! Please log in.")
-                    st.balloons()
-                except sqlite3.IntegrityError:
-                    st.error("Email already registered.")
+                                c.execute("SELECT 1 FROM users WHERE email=?", (email,))
+                if c.fetchone():
+                    st.info("You already have an account. Please go to **Login** from the sidebar.")
+                else:
+                    try:
+                        with st.spinner('Creating your account...'):
+                            time.sleep(0.4)
+                            c.execute(
+                                "INSERT INTO users (name, city, email, mobile, password) VALUES (?, ?, ?, ?, ?)",
+                                (name, city, email, mobile, password)
+                            )
+                            conn.commit()
+                        st.success("Registered successfully! Please log in.")
+                        st.balloons()
+                    except sqlite3.IntegrityError:
+                        st.error("Email already registered.")
 
 # ---------------- LOGIN (single flow, no duplicate auth) ----------------
 if menu == "Login":
