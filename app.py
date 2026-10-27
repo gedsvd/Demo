@@ -7,7 +7,13 @@ from PIL import Image
 import os
 import base64
 import time
+import html
 import plotly.graph_objects as go
+import bcrypt
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -24,9 +30,58 @@ c.execute('''CREATE TABLE IF NOT EXISTS users
 (id INTEGER PRIMARY KEY, name TEXT, city TEXT, email TEXT UNIQUE, mobile TEXT, password TEXT)''')
 conn.commit()
 
-# Admin credentials
-ADMIN_EMAIL = 'admin@admin.com'
-ADMIN_PASS = 'admin123@admin.com'
+def get_admin_credentials():
+    """Load admin credentials dynamically from st.secrets or .env."""
+    load_dotenv(override=True)
+    admin_email = ""
+    admin_pass = ""
+    try:
+        if hasattr(st, "secrets"):
+            admin_email = st.secrets.get("ADMIN_EMAIL", "")
+            admin_pass = st.secrets.get("ADMIN_PASSWORD", "")
+    except Exception:
+        pass
+
+    if not admin_email:
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@deepfake-detector.local")
+    if not admin_pass:
+        admin_pass = os.getenv("ADMIN_PASSWORD", "Admin@122")
+
+    return admin_email.strip().lower(), admin_pass.strip()
+
+
+
+def hash_password(password: str) -> str:
+    """Hash password using bcrypt with salt."""
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
+
+def verify_password(plain_password: str, stored_password: str) -> bool:
+    """Verify password against bcrypt hash, with legacy plaintext fallback."""
+    if not stored_password:
+        return False
+    try:
+        if stored_password.startswith(("$2a$", "$2b$", "$2y$")):
+            return bcrypt.checkpw(plain_password.encode("utf-8"), stored_password.encode("utf-8"))
+        return plain_password == stored_password
+    except Exception:
+        return False
+
+
+@st.cache_resource(show_spinner=False)
+def get_cached_model():
+    """Cache the loaded model in memory so it does not reload on every interaction."""
+    if not os.path.exists("Deep_model.keras"):
+        import gdown
+        with st.spinner('Downloading model — first run only...'):
+            gdown.download(
+                id="1MvQFRlMsv6BJh94y_7vpNMnJ_YJqI_PK",
+                output="Deep_model.keras",
+                quiet=False
+            )
+    return keras.models.load_model("Deep_model.keras")
+
 
 # Sidebar menu
 menu = st.sidebar.selectbox("Navigate", ["Home", "Register", "Login"])
@@ -321,7 +376,7 @@ if menu == 'Home':
         'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
     )
 
-    img_b64 = get_base64("image2.jpg")
+    img_b64 = get_base64("assets/hero.jpg")
 
     if img_b64:
         # Centered floating image
@@ -411,16 +466,17 @@ elif menu == "Register":
             elif password != confirm_password:
                 st.error("Passwords do not match.")
             else:
-                                c.execute("SELECT 1 FROM users WHERE email=?", (email,))
+                c.execute("SELECT 1 FROM users WHERE email=?", (email.strip().lower(),))
                 if c.fetchone():
                     st.info("You already have an account. Please go to **Login** from the sidebar.")
                 else:
                     try:
                         with st.spinner('Creating your account...'):
                             time.sleep(0.4)
+                            hashed_pw = hash_password(password)
                             c.execute(
                                 "INSERT INTO users (name, city, email, mobile, password) VALUES (?, ?, ?, ?, ?)",
-                                (name, city, email, mobile, password)
+                                (name.strip(), city.strip(), email.strip().lower(), mobile.strip(), hashed_pw)
                             )
                             conn.commit()
                         st.success("Registered successfully! Please log in.")
@@ -446,7 +502,15 @@ if menu == "Login":
                 with st.spinner('Verifying credentials...'):
                     time.sleep(0.4)
 
-                if login_email == ADMIN_EMAIL and login_password == ADMIN_PASS:
+                cleaned_login_email = login_email.strip().lower()
+                admin_email, admin_pass = get_admin_credentials()
+
+                is_admin_email = (
+                    cleaned_login_email == admin_email or
+                    (admin_email == "admin@deepfake-detector.local" and cleaned_login_email == "admin@admin.com")
+                )
+
+                if is_admin_email and admin_pass and login_password == admin_pass:
                     st.session_state['logged_in'] = True
                     st.session_state['user_role'] = 'admin'
                     st.session_state['just_logged_in'] = True
@@ -455,12 +519,18 @@ if menu == "Login":
 
                 else:
                     c.execute(
-                        "SELECT * FROM users WHERE email=? AND password=?",
-                        (login_email, login_password)
+                        "SELECT * FROM users WHERE email=?",
+                        (cleaned_login_email,)
                     )
                     user = c.fetchone()
 
-                    if user:
+                    if user and verify_password(login_password, user[5]):
+                        # If user had a legacy plaintext password, upgrade to bcrypt in place
+                        if not str(user[5]).startswith(("$2a$", "$2b$", "$2y$")):
+                            new_hash = hash_password(login_password)
+                            c.execute("UPDATE users SET password=? WHERE id=?", (new_hash, user[0]))
+                            conn.commit()
+
                         st.session_state['logged_in'] = True
                         st.session_state['user_role'] = 'user'
                         st.session_state['user_name'] = user[1]
@@ -487,21 +557,26 @@ if menu == "Login":
 
             for user in users:
                 user_id, name, city, email, mobile = user
+                safe_name = html.escape(str(name or ""))
+                safe_city = html.escape(str(city or ""))
+                safe_email = html.escape(str(email or ""))
+                safe_mobile = html.escape(str(mobile or ""))
+
                 st.markdown(
                     f'''
                     <div class="feature-card" style="text-align:left; margin-bottom:10px;">
-                        <b>{name}</b> | {email} | {city} | {mobile}
+                        <b>{safe_name}</b> | {safe_email} | {safe_city} | {safe_mobile}
                     </div>
                     ''',
                     unsafe_allow_html=True
                 )
 
-                if st.button(f"Delete {email}", key=user_id):
-                    with st.spinner(f'Removing {email}...'):
+                if st.button(f"Delete {safe_email}", key=user_id):
+                    with st.spinner(f'Removing {safe_email}...'):
                         time.sleep(0.3)
                         c.execute("DELETE FROM users WHERE id=?", (user_id,))
                         conn.commit()
-                    st.success(f"User {email} deleted.")
+                    st.success(f"User {safe_email} deleted.")
                     st.rerun()
 
         # ---- User dashboard ----
@@ -510,20 +585,9 @@ if menu == "Login":
                 st.success("Logged in as User!")
             st.title("User Dashboard")
 
-            # Download model if not exists
-            if not os.path.exists("Deep_model.keras"):
-                import gdown
-
-                with st.spinner('Downloading model — first run only...'):
-                    gdown.download(
-                        id="1MvQFRlMsv6BJh94y_7vpNMnJ_YJqI_PK",
-                        output="Deep_model.keras",
-                        quiet=False
-                    )
-
-            # Load the trained model
+            # Load the trained model using cache
             with st.spinner('Loading model into memory...'):
-                model = keras.models.load_model("Deep_model.keras")
+                model = get_cached_model()
 
             # Streamlit App
             st.title("DeepFake Image Detection")
