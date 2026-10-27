@@ -376,7 +376,7 @@ if menu == 'Home':
         'DETECT WHETHER A FACE IMAGE IS REAL OR DEEPFAKE USING ADVANCED DEEP LEARNING TECHNIQUES'
     )
 
-    img_b64 = get_base64("assets/hero.jpg")
+    img_b64 = get_base64("hero.jpg")
 
     if img_b64:
         # Centered floating image
